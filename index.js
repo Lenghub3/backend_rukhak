@@ -2,7 +2,7 @@ const express = require("express");
 const path = require("path");
 const bodyParser = require("body-parser");
 const app = express();
-
+const cors = require("cors");
 const config = require("./config/keys");
 // const mongoose = require("mongoose");
 // mongoose.connect(config.mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -11,7 +11,7 @@ const config = require("./config/keys");
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-
+app.use(cors());
 
 app.use('/api/dialogflow', require('./routes/dialogflow'));
 
