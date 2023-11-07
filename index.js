@@ -39,7 +39,8 @@ if (process.env.NODE_ENV === "production") {
     res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
   });
 }
-
+app.locals.io = io;
 io.on("connection", (socket) => {
   console.log("Connected to Socket.IO");
+
 });

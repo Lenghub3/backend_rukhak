@@ -1,0 +1,14 @@
+[
+  {
+    "orderId": "fa83d668-2bcf-4d9f-ac46-9fd1848fdce9",
+    "products": [
+      "mango tree",
+      "cacao tree"
+    ],
+    "quantities": [
+      2,
+      4
+    ],
+    "timestamp": "2023-11-07T08:47:51.769Z"
+  }
+]

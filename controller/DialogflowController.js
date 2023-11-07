@@ -2,7 +2,7 @@ const DialogflowService = require("../service/DialogflowService");
 const { v4: uuid } = require("uuid");
 const fs = require("fs/promises");
 const config = require("../config/keys");
-const io = require('socket.io')(); 
+const { log } = require("console");
 
 let order = false;
 let pendingOrder = {
@@ -13,20 +13,20 @@ let pendingOrder = {
 };
 
 let products = [
-    "Cacao tree",
-    "cotton",
-    "sun flowers",
-    "happy leaf",
-    "soybeans",
-    "mango tree",
-    "Oak tree",
-    "Apple",
-    "banana",
-    "kiwi",
-    "melon",
-    "mango",
-    "grape"
-  ];
+  "Cacao tree",
+  "cotton",
+  "sun flowers",
+  "happy leaf",
+  "soybeans",
+  "mango tree",
+  "Oak tree",
+  "Apple",
+  "banana",
+  "kiwi",
+  "melon",
+  "mango",
+  "grape",
+];
 
 async function readProductsFromFile() {
   try {
@@ -36,6 +36,8 @@ async function readProductsFromFile() {
     console.error("Error reading products file:", error);
   }
 }
+
+// ...
 
 async function storeOrder(order) {
   try {
@@ -53,15 +55,12 @@ async function storeOrder(order) {
 
     await fs.writeFile(filePath, JSON.stringify(orders, null, 2));
     console.log("Order stored successfully.");
-
-    // Emit a 'newOrder' event to notify the frontend
-    io.emit('newOrder', { order });
-
   } catch (error) {
     console.error("Error storing order:", error);
   }
 }
 
+// ...
 
 const dialogflowService = new DialogflowService(
   config.googleProjectID,
@@ -85,7 +84,8 @@ module.exports = {
         const numbers = result.parameters.fields.number.listValue.values;
 
         if (productItems.length !== numbers.length) {
-          result.fulfillmentText = "Please provide both product and quantity for each item.";
+          result.fulfillmentText =
+            "Please provide both product and quantity for each item.";
         } else {
           productItems.forEach((item, index) => {
             pendingOrder.products.push(item.stringValue);
@@ -93,7 +93,8 @@ module.exports = {
           });
         }
       } else if (result.intent.displayName === "add_order" && !order) {
-        result.fulfillmentText = "You cannot add items to the order until a new order is created.";
+        result.fulfillmentText =
+          "You cannot add items to the order until a new order is created.";
       }
 
       if (result.intent.displayName === "order.remove" && order) {
@@ -146,22 +147,30 @@ module.exports = {
         }
       }
 
-      if (result.intent.displayName === "order.completed" && pendingOrder.products.length > 0) {
+      if (
+        result.intent.displayName === "order.completed" &&
+        pendingOrder.products.length > 0
+      ) {
         const combinedOrder = {};
 
         pendingOrder.products.forEach((product, index) => {
-          combinedOrder[product] = (combinedOrder[product] || 0) + pendingOrder.quantities[index];
+          combinedOrder[product] =
+            (combinedOrder[product] || 0) + pendingOrder.quantities[index];
         });
 
         pendingOrder.products = Object.keys(combinedOrder);
         pendingOrder.quantities = Object.values(combinedOrder);
 
-        const productQuantities = pendingOrder.products.map((product, index) => `${product}: ${pendingOrder.quantities[index]}`);
+        const productQuantities = pendingOrder.products.map(
+          (product, index) => `${product}: ${pendingOrder.quantities[index]}`
+        );
         const orderDetails = productQuantities.join(", ");
 
         result.fulfillmentText = `You have ordered\n(${orderDetails}) Do you want to checkout ?`;
 
         await storeOrder(pendingOrder);
+        const io = req.app.locals.io;
+        io.emit("orderStored", { message: "You have ordered producted" });
         pendingOrder = {
           orderId: uuid(),
           products: [],
@@ -170,8 +179,12 @@ module.exports = {
         };
 
         order = false;
-      } else if (result.intent.displayName === "order.completed" && pendingOrder.products.length === 0) {
-        result.fulfillmentText = "Bro why are you not order something before checkout";
+      } else if (
+        result.intent.displayName === "order.completed" &&
+        pendingOrder.products.length === 0
+      ) {
+        result.fulfillmentText =
+          "Bro why are you not order something before checkout";
       }
 
       res.send(result);
@@ -180,6 +193,4 @@ module.exports = {
       res.status(500).send("Internal Server Error");
     }
   },
-
-  
 };
