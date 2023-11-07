@@ -23,7 +23,7 @@ class DialogflowService {
     this.sessionClient = new dialogflow.SessionsClient();
     this.sessionPath = this.sessionClient.sessionPath(projectId, sessionId);
     this.languageCode = languageCode;
-    this.order = false; // Initialize the order flag
+    this.order = false; 
     this.pendingOrder = {
       orderId: uuid(), 
       products: [],
