@@ -2,8 +2,10 @@ const express = require("express");
 const path = require("path");
 const bodyParser = require("body-parser");
 const app = express();
-const config = require("./config/keys");
+const dotenv = require("dotenv");
+const mongoose = require("mongoose"); // Import Mongoose
 const cors = require("cors");
+dotenv.config();
 
 const port = process.env.PORT || 4000;
 
@@ -13,7 +15,7 @@ const server = app.listen(port, () => {
 
 const io = require("socket.io")(server, {
   cors: {
-    origin: "http://localhost:5173", // Allow requests only from this origin
+    origin: "http://localhost:5173",
     methods: ["GET", "POST"],
     credentials: true,
   }
@@ -22,12 +24,26 @@ const io = require("socket.io")(server, {
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// Enable CORS
 app.use(cors({
   origin: "http://localhost:5173",
   methods: ["GET", "POST"],
   credentials: true,
 }));
+
+
+mongoose.connect(process.env.MONGO_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+const db = mongoose.connection;
+db.on("error", (error) => {
+  console.error("MongoDB connection error:", error);
+});
+db.once("open", () => {
+  console.log("Connected to MongoDB");
+});
+
 
 // Routes
 app.use('/api/dialogflow', require('./routes/dialogflow'));
@@ -39,8 +55,8 @@ if (process.env.NODE_ENV === "production") {
     res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
   });
 }
+
 app.locals.io = io;
 io.on("connection", (socket) => {
   console.log("Connected to Socket.IO");
-
 });

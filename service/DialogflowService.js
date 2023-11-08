@@ -1,6 +1,5 @@
 const dialogflow = require("dialogflow");
-const fs = require("fs/promises");
-const { v4: uuid } = require("uuid");
+const PendingOrder = require("../model/pendingOrder");
 
 let products = [
   "Cacao tree",
@@ -23,12 +22,10 @@ class DialogflowService {
     this.sessionClient = new dialogflow.SessionsClient();
     this.sessionPath = this.sessionClient.sessionPath(projectId, sessionId);
     this.languageCode = languageCode;
-    this.order = false; 
+    this.order = false;
     this.pendingOrder = {
-      orderId: uuid(), 
       products: [],
       quantities: [],
-      timestamp: new Date().toISOString(),
     };
   }
 
@@ -53,8 +50,7 @@ class DialogflowService {
   }
 
   processNewOrder(result) {
-    // Logic for processing a new order
-    this.order = true; // Set the order flag to true
+    this.order = true; 
   }
 
   processAddOrder(result) {
@@ -112,19 +108,9 @@ class DialogflowService {
 
   async storeOrder(order) {
     try {
-      const filePath = "/Users/anbschool0015/backend_rukhak/orders.json";
-      let orders = [];
+      const newOrder = new PendingOrder(order);
 
-      try {
-        const data = await fs.readFile(filePath, "utf8"); // Read file as UTF-8
-        orders = JSON.parse(data);
-      } catch (readError) {
-        console.error("Error reading orders file:", readError);
-      }
-
-      orders.push(order);
-
-      await fs.writeFile(filePath, JSON.stringify(orders, null, 2), "utf8"); // Write file as UTF-8
+      await newOrder.save();
       console.log("Order stored successfully.");
     } catch (error) {
       console.error("Error storing order:", error);
@@ -148,23 +134,19 @@ class DialogflowService {
       );
       const orderDetails = productQuantities.join(", ");
 
-      result.fulfillmentText = `You have ordered\n(${orderDetails}) Do you want to checkout ?`;
+      result.fulfillmentText = `You have ordered\n(${orderDetails})`;
 
-      // Call the storeOrder function
       this.storeOrder(this.pendingOrder);
-      
+
       this.pendingOrder = {
-        orderId: uuid(), // Add a unique identifier
         products: [],
         quantities: [],
-        timestamp: new Date().toISOString(),
       };
-      
-      this.order = false; // Set the order flag to false
+      this.order = false;
     } else {
       result.fulfillmentText = "Bro, why are you not ordering something before checkout?";
     }
   }
 }
 
-module.exports = DialogflowService;
+module.exports = {DialogflowService};
