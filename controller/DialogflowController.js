@@ -15,13 +15,15 @@ const handleTextQuery = async (req, res) => {
   try {
     const result = await dialogflowService.detectTextIntent(text);
     const intentName = result.intent.displayName;
-
+    console.log(intentName);
     switch (intentName) {
       case "new.order":
         dialogflowService.processNewOrder(result);
         break;
       case "add_order":
-        if (dialogflowService.order) {
+        if (!dialogflowService.order) {
+          result.fulfillmentText = "Please make a new order. 🤓";
+        } else {
           dialogflowService.processAddOrder(result);
         }
         break;
@@ -37,19 +39,19 @@ const handleTextQuery = async (req, res) => {
         if (dialogflowService.pendingOrder.products.length > 0) {
           dialogflowService.processOrderCompleted(result);
 
-          const userId = new mongoose.Types.ObjectId();
-          const senderUserId = new mongoose.Types.ObjectId();
-          const entityId = new mongoose.Types.ObjectId();
+          const userId = new mongoose.Types.ObjectId(); // Provide a specific value
+          const senderUserId = new mongoose.Types.ObjectId(); // Provide a specific value
+          const entityId = new mongoose.Types.ObjectId(); // Provide a specific value
 
-          const notification = await Notification.insertNotification(
+          const notification = new Notification({
             userId,
             senderUserId,
-            "Order",
-            entityId
-          );
+            type: "Order",
+            entityId,
+          });
           await notification.save();
 
-          const io = req.app.locals.io;
+          const io = req.app.locals.io; // Make sure socket.io is correctly set up
           io.emit("orderStored", { message: "You have ordered products." });
         } else {
           result.fulfillmentText =

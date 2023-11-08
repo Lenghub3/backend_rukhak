@@ -49,7 +49,7 @@ class DialogflowService {
     }
   }
 
-  processNewOrder(result) {
+  processNewOrder() {
     this.order = true; 
   }
 
