@@ -39,19 +39,19 @@ const handleTextQuery = async (req, res) => {
         if (dialogflowService.pendingOrder.products.length > 0) {
           dialogflowService.processOrderCompleted(result);
 
-          const userId = new mongoose.Types.ObjectId(); // Provide a specific value
-          const senderUserId = new mongoose.Types.ObjectId(); // Provide a specific value
-          const entityId = new mongoose.Types.ObjectId(); // Provide a specific value
+          const userId = new mongoose.Types.ObjectId();
+          const senderUserId = new mongoose.Types.ObjectId();
+          const entityId = new mongoose.Types.ObjectId();
 
-          const notification = new Notification({
+          const notification = await Notification.insertNotification(
             userId,
             senderUserId,
-            type: "Order",
-            entityId,
-          });
+            "Order",
+            entityId
+          );
           await notification.save();
 
-          const io = req.app.locals.io; // Make sure socket.io is correctly set up
+          const io = req.app.locals.io;
           io.emit("orderStored", { message: "You have ordered products." });
         } else {
           result.fulfillmentText =
