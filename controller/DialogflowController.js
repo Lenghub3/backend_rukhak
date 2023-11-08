@@ -1,10 +1,13 @@
-const { DialogflowService } = require('../service/DialogflowService');
-const { googleProjectID, dialogFlowSessionID, dialogFlowSessionLanguageCode } = require('../config/keys');
-const { Notification } = require('../model/notification');
-const { v4: uuid } = require('uuid');
-const mongoose = require('mongoose');
+const { DialogflowService } = require("../service/DialogflowService");
+const { Notification } = require("../model/notification");
+const { v4: uuid } = require("uuid");
+const mongoose = require("mongoose");
 
-const dialogflowService = new DialogflowService(googleProjectID, dialogFlowSessionID, dialogFlowSessionLanguageCode);
+const dialogflowService = new DialogflowService(
+  process.env.googleProjectID,
+  process.env.dialogFlowSessionID,
+  process.env.dialogFlowSessionLanguageCode
+);
 
 const handleTextQuery = async (req, res) => {
   const { text } = req.body;
@@ -14,23 +17,23 @@ const handleTextQuery = async (req, res) => {
     const intentName = result.intent.displayName;
 
     switch (intentName) {
-      case 'new.order':
+      case "new.order":
         dialogflowService.processNewOrder(result);
         break;
-      case 'add_order':
+      case "add_order":
         if (dialogflowService.order) {
           dialogflowService.processAddOrder(result);
         }
         break;
-      case 'order.remove':
+      case "order.remove":
         if (dialogflowService.order) {
           dialogflowService.processRemoveOrder(result);
         }
         break;
-      case 'show.product':
+      case "show.product":
         dialogflowService.processShowProducts(result);
         break;
-      case 'order.completed':
+      case "order.completed":
         if (dialogflowService.pendingOrder.products.length > 0) {
           dialogflowService.processOrderCompleted(result);
 
@@ -38,13 +41,19 @@ const handleTextQuery = async (req, res) => {
           const senderUserId = new mongoose.Types.ObjectId();
           const entityId = new mongoose.Types.ObjectId();
 
-          const notification = await Notification.insertNotification(userId, senderUserId, 'Order', entityId);
+          const notification = await Notification.insertNotification(
+            userId,
+            senderUserId,
+            "Order",
+            entityId
+          );
           await notification.save();
 
           const io = req.app.locals.io;
-          io.emit('orderStored', { message: 'You have ordered products.' });
+          io.emit("orderStored", { message: "You have ordered products." });
         } else {
-          result.fulfillmentText = 'Bro, why are you not ordering something before checkout?';
+          result.fulfillmentText =
+            "Bro, why are you not ordering something before checkout?";
         }
         break;
       default:
@@ -52,8 +61,8 @@ const handleTextQuery = async (req, res) => {
 
     res.send(result);
   } catch (error) {
-    console.error('Error processing text query:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error processing text query:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
