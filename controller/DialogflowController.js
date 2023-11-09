@@ -1,7 +1,6 @@
-const { DialogflowService } = require("../service/DialogflowService");
-const { Notification } = require("../model/notification");
-const { v4: uuid } = require("uuid");
-const mongoose = require("mongoose");
+import DialogflowService from "../service/DialogflowService.js";
+import Notification from "../model/notification.js";
+import mongoose from "mongoose";
 
 const dialogflowService = new DialogflowService(
   process.env.googleProjectID,
@@ -9,13 +8,14 @@ const dialogflowService = new DialogflowService(
   process.env.dialogFlowSessionLanguageCode
 );
 
-const handleTextQuery = async (req, res) => {
+export default async function handleTextQuery(req, res) {
   const { text } = req.body;
 
   try {
     const result = await dialogflowService.detectTextIntent(text);
     const intentName = result.intent.displayName;
     console.log(intentName);
+
     switch (intentName) {
       case "new.order":
         dialogflowService.processNewOrder(result);
@@ -51,8 +51,8 @@ const handleTextQuery = async (req, res) => {
           );
           await notification.save();
 
-          const io = req.app.locals.io;
-          io.emit("orderStored", { message: "You have ordered products." });
+          // Emit the event within the context of a connected socket
+          req.io.emit("orderStored", { message: "You have ordered products." });
         } else {
           result.fulfillmentText =
             "Bro, why are you not ordering something before checkout?";
@@ -66,6 +66,4 @@ const handleTextQuery = async (req, res) => {
     console.error("Error processing text query:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
-};
-
-module.exports = { handleTextQuery };
+}

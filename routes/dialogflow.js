@@ -1,7 +1,8 @@
-const express = require("express");
+import express from "express";
+import handleTextQuery from "../controller/DialogflowController.js";
+
 const router = express.Router();
-const DialogflowController = require("../controller/DialogflowController");
 
-router.post("/textQuery", DialogflowController.handleTextQuery);
+router.post("/textQuery",handleTextQuery);
 
-module.exports = router;
+export default router;

@@ -1,10 +1,11 @@
-const mongoose = require("mongoose");
-const { v4: uuid } = require("uuid");
-const Schema = mongoose.Schema;
+import mongoose from "mongoose";
+import { v4 as uuid } from "uuid";
+const { Schema } = mongoose;
+
 const pendingOrderSchema = new Schema({
   orderId: {
     type: String,
-    default: uuid, 
+    default: uuid,
   },
   products: [String],
   quantities: [Number],
@@ -16,4 +17,4 @@ const pendingOrderSchema = new Schema({
 
 const PendingOrder = mongoose.model("PendingOrder", pendingOrderSchema);
 
-module.exports = PendingOrder; 
+export default PendingOrder;

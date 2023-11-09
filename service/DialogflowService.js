@@ -1,5 +1,9 @@
-const dialogflow = require("dialogflow");
-const PendingOrder = require("../model/pendingOrder");
+import { SessionsClient } from "@google-cloud/dialogflow";
+import PendingOrder from "../model/pendingOrder.js";
+import dotenv from "dotenv";
+
+// Load environment variables from the .env file
+dotenv.config();
 
 let products = [
   "Cacao tree",
@@ -19,8 +23,9 @@ let products = [
 
 class DialogflowService {
   constructor(projectId, sessionId, languageCode) {
-    this.sessionClient = new dialogflow.SessionsClient();
-    this.sessionPath = this.sessionClient.sessionPath(projectId, sessionId);
+    // Use the GOOGLE_APPLICATION_CREDENTIALS environment variable to authenticate
+    this.sessionClient = new SessionsClient();
+    this.sessionPath = this.sessionClient.projectAgentSessionPath(projectId, sessionId);
     this.languageCode = languageCode;
     this.order = false;
     this.pendingOrder = {
@@ -50,7 +55,7 @@ class DialogflowService {
   }
 
   processNewOrder() {
-    this.order = true; 
+    this.order = true;
   }
 
   processAddOrder(result) {
@@ -62,8 +67,9 @@ class DialogflowService {
       result.fulfillmentText = "Please provide both product and quantity for each item.";
     } else {
       productItems.forEach((item, index) => {
+        const quantity = numbers[index].numberValue || 0;
         this.pendingOrder.products.push(item.stringValue);
-        this.pendingOrder.quantities.push(numbers[index].numberValue);
+        this.pendingOrder.quantities.push(quantity);
       });
     }
   }
@@ -109,7 +115,6 @@ class DialogflowService {
   async storeOrder(order) {
     try {
       const newOrder = new PendingOrder(order);
-
       await newOrder.save();
       console.log("Order stored successfully.");
     } catch (error) {
@@ -149,4 +154,4 @@ class DialogflowService {
   }
 }
 
-module.exports = {DialogflowService};
+export default DialogflowService;
