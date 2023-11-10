@@ -6,7 +6,7 @@ import cors from "cors";
 import { Server } from 'socket.io'; // Import the Server class
 import dotenv from "dotenv";
 import dialogflowRoutes from "./routes/dialogflow.js";
-import notificationsRoutes from "./routes/notification.js";
+// import notificationsRoutes from "./routes/notification.js";
 
 dotenv.config();
 
@@ -68,7 +68,7 @@ app.use(
 
 // Define routes
 app.use("/api/dialogflow", dialogflowRoutes);
-app.use("/api/notifications", notificationsRoutes);
+// app.use("/api/notifications", notificationsRoutes);
 
 // Serve static files for production
 if (process.env.NODE_ENV === "production") {

@@ -5,21 +5,6 @@ import dotenv from "dotenv";
 // Load environment variables from the .env file
 dotenv.config();
 
-let products = [
-  "Cacao tree",
-  "cotton",
-  "sun flowers",
-  "happy leaf",
-  "soybeans",
-  "mango tree",
-  "Oak tree",
-  "Apple",
-  "banana",
-  "kiwi",
-  "melon",
-  "mango",
-  "grape",
-];
 
 class DialogflowService {
   constructor(projectId, sessionId, languageCode) {
@@ -102,15 +87,6 @@ class DialogflowService {
     });
   }
 
-  processShowProducts(result) {
-    // Logic for showing available products
-    if (products.length > 0) {
-      const productList = products.join("\n");
-      result.fulfillmentText = `Here are all available products:\n${productList}`;
-    } else {
-      result.fulfillmentText = "No products are available at the moment.";
-    }
-  }
 
   async storeOrder(order) {
     try {

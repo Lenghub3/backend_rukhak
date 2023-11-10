@@ -32,30 +32,39 @@ export default async function handleTextQuery(req, res) {
           dialogflowService.processRemoveOrder(result);
         }
         break;
-      case "show.product":
-        dialogflowService.processShowProducts(result);
-        break;
       case "order.completed":
         if (dialogflowService.pendingOrder.products.length > 0) {
+          const buyer = new mongoose.Types.ObjectId();
+          const admin = new mongoose.Types.ObjectId();
+          const seller = new mongoose.Types.ObjectId();
+          const entityId = new mongoose.Types.ObjectId();
+          const content1 = "You have ordered products";
+          const content2 = "You have received a new order.";
+          
+          req.io.emit("buyerNotification", { message: content1 });
+          req.io.emit("sellerNotification", { message: content2 });
+
           dialogflowService.processOrderCompleted(result);
 
-          const userId = new mongoose.Types.ObjectId();
-          const senderUserId = new mongoose.Types.ObjectId();
-          const entityId = new mongoose.Types.ObjectId();
-
           const notification = await Notification.insertNotification(
-            userId,
-            senderUserId,
+            buyer,
+            admin,
+            "Making order",
+            content1,
             "Order",
             entityId
           );
-          await notification.save();
 
-          // Emit the event within the context of a connected socket
-          req.io.emit("orderStored", { message: "You have ordered products." });
-        } else {
-          result.fulfillmentText =
-            "Bro, why are you not ordering something before checkout?";
+          await notification.save();
+          const sellerNotification = await Notification.insertNotification(
+            seller,
+            admin,
+            "Product Order",
+            content2,
+            "new order",
+            entityId
+          );
+          await sellerNotification.save();
         }
         break;
       default:
