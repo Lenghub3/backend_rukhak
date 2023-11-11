@@ -41,8 +41,8 @@ export default async function handleTextQuery(req, res) {
           const content1 = "You have ordered products";
           const content2 = "You have received a new order.";
           
-          req.io.emit("buyerNotification", { message: content1 });
-          req.io.emit("sellerNotification", { message: content2 });
+          // req.io.emit("buyerNotification", { message: content1 });
+          // req.io.emit("sellerNotification", { message: content2 });
 
           dialogflowService.processOrderCompleted(result);
 
